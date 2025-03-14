@@ -24,14 +24,6 @@ execute_or_print() {
     fi
 }
 
-# Validate source files exist
-for file in ".cursorignore" ".cursorindexingignore"; do
-    if [ ! -f "$file" ]; then
-        echo "❌ Required source file $file not found"
-        exit 1
-    fi
-done
-
 TARGET_DIR="$1"
 
 # Function to add specific entries to ignore files
@@ -48,7 +40,7 @@ add_ignore_entries() {
         else
             echo "   Would add missing entries:"
             for entry in "${entries[@]}"; do
-                if ! grep -qF "$entry" "$target"; then
+                if ! grep -qF "$entry" "$target" 2>/dev/null; then
                     echo "   + $entry"
                 fi
             done
@@ -58,13 +50,16 @@ add_ignore_entries() {
     
     # If target doesn't exist, create it with the entries
     if [ ! -f "$target" ]; then
+        echo "📄 Creating new file: $target"
         printf "%s\n" "${entries[@]}" > "$target"
         return
     }
     
     # Add missing entries
+    echo "📝 Updating existing file: $target"
     for entry in "${entries[@]}"; do
-        if ! grep -qF "$entry" "$target"; then
+        if ! grep -qF "$entry" "$target" 2>/dev/null; then
+            echo "   + Adding: $entry"
             echo "$entry" >> "$target"
         fi
     done
@@ -101,6 +96,9 @@ cp -r .cursor/templates/* "$TARGET_DIR/.cursor/templates/"
 
 # Create docs directory if it doesn't exist
 mkdir -p "$TARGET_DIR/docs"
+
+# Create xnotes directory if it doesn't exist
+mkdir -p "$TARGET_DIR/xnotes"
 
 # Create workflow documentation
 cat > "$TARGET_DIR/docs/workflow-rules.md" << 'EOL'
