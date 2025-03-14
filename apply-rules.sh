@@ -97,9 +97,6 @@ cp -r .cursor/templates/* "$TARGET_DIR/.cursor/templates/"
 # Create docs directory if it doesn't exist
 mkdir -p "$TARGET_DIR/docs"
 
-# Create xnotes directory if it doesn't exist
-mkdir -p "$TARGET_DIR/xnotes"
-
 # Create workflow documentation
 cat > "$TARGET_DIR/docs/workflow-rules.md" << 'EOL'
 # Cursor Workflow Rules
