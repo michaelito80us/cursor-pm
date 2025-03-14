@@ -44,6 +44,7 @@ alwaysApply: true
 5. REPEAT until all epics complete
 
 ## Automatic Actions (No User Permission Required)
+
 1. Create next story when previous completes
 2. Run tests during development
 3. Update story tasks as completed
