@@ -28,7 +28,7 @@ TARGET_DIR="$1"
 
 # Function to add specific entries to ignore files
 add_ignore_entries() {
-    local target="$1"
+    local target="$TARGET_DIR/$1"
     shift
     local entries=("$@")
     
@@ -46,14 +46,14 @@ add_ignore_entries() {
             done
         fi
         return
-    }
+    fi
     
     # If target doesn't exist, create it with the entries
     if [ ! -f "$target" ]; then
         echo "📄 Creating new file: $target"
         printf "%s\n" "${entries[@]}" > "$target"
         return
-    }
+    fi
     
     # Add missing entries
     echo "📝 Updating existing file: $target"
@@ -164,7 +164,7 @@ cursorignore_entries=(
     ".gitignore"
     "/xnotes"
 )
-add_ignore_entries "$TARGET_DIR/.cursorignore" "${cursorignore_entries[@]}"
+add_ignore_entries ".cursorignore" "${cursorignore_entries[@]}"
 
 # Update .cursorindexingignore with specific entries
 echo "📄 Updating .cursorindexingignore..."
@@ -172,7 +172,7 @@ cursorindexingignore_entries=(
     "/xnotes"
     ".cursor/templates/*.md"
 )
-add_ignore_entries "$TARGET_DIR/.cursorindexingignore" "${cursorindexingignore_entries[@]}"
+add_ignore_entries ".cursorindexingignore" "${cursorindexingignore_entries[@]}"
 
 # Update .gitignore with all entries
 echo "📄 Updating .gitignore..."
@@ -183,7 +183,7 @@ gitignore_entries=(
     "/xnotes"
     ".DS_Store"
 )
-add_ignore_entries "$TARGET_DIR/.gitignore" "${gitignore_entries[@]}"
+add_ignore_entries ".gitignore" "${gitignore_entries[@]}"
 
 echo "✨ Deployment Complete!"
 echo "📁 Core rules: $TARGET_DIR/.cursor/rules/"
