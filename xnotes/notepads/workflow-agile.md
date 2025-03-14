@@ -1,6 +1,7 @@
 ---
 Notepad Name: workflow-agile
 ---
+
 # Agile Workflow Rules
 
 **CRITICAL**: All project memory stored in `.ai/` folder. Follow this EXACT sequence.
@@ -8,6 +9,7 @@ Notepad Name: workflow-agile
 ## Required Sequence - NO DEVIATIONS ALLOWED
 
 1. FIRST: Verify `.ai/prd.md` exists
+
    - If missing: Create with user using `.cursor/templates/template-prd.md`
    - MUST include ALL required sections (1-10)
    - MUST define Epics in Section 6 with clear sequence
@@ -15,6 +17,8 @@ Notepad Name: workflow-agile
    - STOP all other work until PRD is `status: approved`
 
 2. AFTER PRD approval ONLY: Create `.ai/arch.md`
+
+   - Can't start ARCH until PRD status is not approved
    - Use `.cursor/templates/template-arch.md` exactly
    - MUST include ALL required sections (1-8)
    - MUST include technology table and mermaid diagrams
@@ -22,11 +26,14 @@ Notepad Name: workflow-agile
    - STOP all other work until ARCH is `status: approved`
 
 3. AFTER ARCH approval ONLY: Setup epics
+
+   - Can't start epics until ARCH status is not approved
    - Create `.ai/epic-{n}/` directories for each Epic in PRD
    - Work on EXACTLY ONE epic at a time, in PRD-defined order
    - Track epic status in PRD Section 6 (Complete, Current, Future)
 
 4. FOR EACH epic (one at a time):
+
    - Create first story: `.ai/epic-{n}/story-{m}.story.md`
    - Use `.cursor/templates/template-story.md` exactly
    - WAIT for explicit story approval before implementation
