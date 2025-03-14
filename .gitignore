@@ -1,5 +1,4 @@
 # Private individual user cursor rules
 .cursor/rules/_*.mdc
 
-.DS_STORE
 .DS_Store
