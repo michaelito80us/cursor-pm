@@ -1,18 +1,79 @@
 #!/bin/bash
+set -e  # Exit on error
 
-# Check if target directory is provided
+# Parse arguments
+DRY_RUN=false
+if [ "$1" == "--dry-run" ]; then
+    DRY_RUN=true
+    shift
+fi
+
+# Validate requirements
 if [ $# -eq 0 ]; then
-    echo "Error: Please provide the target project directory"
-    echo "Usage: ./apply-rules.sh <target-project-directory>"
+    echo "❌ Error: Please provide the target project directory"
+    echo "Usage: ./apply-rules.sh [--dry-run] <target-project-directory>"
     exit 1
 fi
 
+# Function to simulate or execute a command
+execute_or_print() {
+    if [ "$DRY_RUN" = true ]; then
+        echo "🔍 Would execute: $*"
+    else
+        "$@"
+    fi
+}
+
+# Validate source files exist
+for file in ".cursorignore" ".cursorindexingignore"; do
+    if [ ! -f "$file" ]; then
+        echo "❌ Required source file $file not found"
+        exit 1
+    fi
+done
+
 TARGET_DIR="$1"
+
+# Function to add specific entries to ignore files
+add_ignore_entries() {
+    local target="$1"
+    shift
+    local entries=("$@")
+    
+    if [ "$DRY_RUN" = true ]; then
+        echo "🔍 Would modify: $target"
+        if [ ! -f "$target" ]; then
+            echo "   Would create new file with entries:"
+            printf "   %s\n" "${entries[@]}"
+        else
+            echo "   Would add missing entries:"
+            for entry in "${entries[@]}"; do
+                if ! grep -qF "$entry" "$target"; then
+                    echo "   + $entry"
+                fi
+            done
+        fi
+        return
+    }
+    
+    # If target doesn't exist, create it with the entries
+    if [ ! -f "$target" ]; then
+        printf "%s\n" "${entries[@]}" > "$target"
+        return
+    }
+    
+    # Add missing entries
+    for entry in "${entries[@]}"; do
+        if ! grep -qF "$entry" "$target"; then
+            echo "$entry" >> "$target"
+        fi
+    done
+}
 
 # Create target directory if it doesn't exist
 if [ ! -d "$TARGET_DIR" ]; then
-    echo "📁 Creating new project directory: $TARGET_DIR"
-    mkdir -p "$TARGET_DIR"
+    echo "📁 ${DRY_RUN:+"Would create"} ${DRY_RUN:="Creating"} new project directory: $TARGET_DIR"
+    execute_or_print mkdir -p "$TARGET_DIR"
 
     # Initialize readme for new project
     cat > "$TARGET_DIR/README.md" << 'EOL'
@@ -93,37 +154,41 @@ For a more flexible approach, use the templates in `xnotes/notepads/`:
 
 EOL
 
-# Update .gitignore if needed
-if [ -f "$TARGET_DIR/.gitignore" ]; then
-    if ! grep -q "\.cursor/rules/\*\.mdc" "$TARGET_DIR/.gitignore"; then
-        echo -e "\n# Private individual user cursor rules\n.cursor/rules/*.mdc" >> "$TARGET_DIR/.gitignore"
-    fi
-else
-    echo -e "# Private individual user cursor rules\n.cursor/rules/_*.mdc" > "$TARGET_DIR/.gitignore"
-fi
-
 # Create xnotes directory and copy templates
 echo "📝 Setting up Notepad templates..."
 mkdir -p "$TARGET_DIR/xnotes"
 cp -r xnotes/* "$TARGET_DIR/xnotes/"
 
-# Update .cursorignore if needed
-if [ -f "$TARGET_DIR/.cursorignore" ]; then
-    if ! grep -q "^xnotes/" "$TARGET_DIR/.cursorignore"; then
-        echo -e "\n# Project notes and templates\nxnotes/" >> "$TARGET_DIR/.cursorignore"
-    fi
-else
-    echo -e "# Project notes and templates\nxnotes/" > "$TARGET_DIR/.cursorignore"
-fi
+# Update .cursorignore with specific entries
+echo "📄 Updating .cursorignore..."
+cursorignore_entries=(
+    "/node_modules"
+    "/build"
+    "/temp"
+    ".DS_Store"
+    ".gitignore"
+    "/xnotes"
+)
+add_ignore_entries "$TARGET_DIR/.cursorignore" "${cursorignore_entries[@]}"
 
-# Create or update .cursorindexingignore
-if [ -f "$TARGET_DIR/.cursorindexingignore" ]; then
-    if ! grep -q "^\.cursor/templates/" "$TARGET_DIR/.cursorindexingignore"; then
-        echo -e "\n# Templates - accessible but not indexed\n.cursor/templates/" >> "$TARGET_DIR/.cursorindexingignore"
-    fi
-else
-    echo -e "# Templates - accessible but not indexed\n.cursor/templates/" > "$TARGET_DIR/.cursorindexingignore"
-fi
+# Update .cursorindexingignore with specific entries
+echo "📄 Updating .cursorindexingignore..."
+cursorindexingignore_entries=(
+    "/xnotes"
+    ".cursor/templates/*.md"
+)
+add_ignore_entries "$TARGET_DIR/.cursorindexingignore" "${cursorindexingignore_entries[@]}"
+
+# Update .gitignore with all entries
+echo "📄 Updating .gitignore..."
+gitignore_entries=(
+    "# Private individual user cursor rules"
+    ".cursor/rules/_*.mdc"
+    "# Project specific ignores"
+    "/xnotes"
+    ".DS_Store"
+)
+add_ignore_entries "$TARGET_DIR/.gitignore" "${gitignore_entries[@]}"
 
 echo "✨ Deployment Complete!"
 echo "📁 Core rules: $TARGET_DIR/.cursor/rules/"

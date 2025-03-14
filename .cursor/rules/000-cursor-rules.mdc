@@ -86,6 +86,7 @@ Common glob patterns for different rule types:
   - <example>
   - <danger>
   - <required>
+  - <critical>
 - Always indent content within XML or nested XML tags by 2 spaces
 - Emojies and Mermaid diagrams are allowed if it is not redundant and better explains the rule for the AI comprehension.
 
